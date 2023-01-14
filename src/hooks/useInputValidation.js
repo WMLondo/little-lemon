@@ -5,7 +5,7 @@ const useInputValidation = (validationFunction) => {
   const [value, setValue] = useState("");
 
   const valueIsValid = validationFunction(value);
-  const hasError = valueIsValid && touchInput;
+  const hasError = !valueIsValid && touchInput;
 
   const valueChangedHandler = (e) => {
     setValue(e.target.value);

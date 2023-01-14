@@ -1,53 +1,60 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import useInputValidation from "../../../hooks/useInputValidation";
 import classes from "./BookingForm.module.css";
 
-const actualDate = new Date();
-const defaultDate = `${actualDate.getFullYear()}-${
-  actualDate.getMonth() + 1
-}-${actualDate.getDate()}`;
-
-const BookingForm = () => {
+const BookingForm = (props) => {
   const {
     value: date,
-    isValid: dateIsValid,
+    valueIsValid: dateIsValid,
     hasError: dateHasError,
     valueChangedHandler: dateChangedHandler,
     valueBlurHandler: dateBlurHandler,
     resetInput: dateReset,
-  } = useInputValidation((value) => value.trim() === "");
+  } = useInputValidation((value) => value.trim() !== "");
   const {
     value: time,
-    isValid: timeIsValid,
+    valueIsValid: timeIsValid,
     hasError: timeHasError,
     valueChangedHandler: timeChangedHandler,
     valueBlurHandler: timeBlurHandler,
     resetInput: timeReset,
-  } = useInputValidation((value) => value.trim() === "");
+  } = useInputValidation(
+    (value) => value.trim() !== "" && value.trim() !== "Select"
+  );
 
   const {
     value: guest,
-    isValid: guestIsValid,
+    valueIsValid: guestIsValid,
     hasError: guestHasError,
     valueChangedHandler: guestChangedHandler,
     valueBlurHandler: guestBlurHandler,
     resetInput: guestReset,
-  } = useInputValidation((value) => value.trim() === "");
+  } = useInputValidation((value) => value.trim() !== "");
 
   const {
     value: occasion,
-    isValid: occasionIsValid,
+    valueIsValid: occasionIsValid,
     hasError: occasionHasError,
     valueChangedHandler: occasionChangedHandler,
     valueBlurHandler: occasionBlurHandler,
     resetInput: occasionReset,
-  } = useInputValidation((value) => value.trim() === "");
+  } = useInputValidation(
+    (value) => value.trim() !== "" && value.trim() !== "Select"
+  );
 
   const reservationHandler = (e) => {
     e.preventDefault();
-    if (dateIsValid) {
-      console.log("Data sended...");
+    const formIsValid =
+      dateIsValid && timeIsValid && guestIsValid && occasionIsValid;
+    if (!formIsValid) {
+      return;
     }
+    console.log("Data sended...");
+    //props.submitForm({ date, time, guest, occasion });
+    dateReset();
+    timeReset();
+    guestReset();
+    occasionReset();
   };
 
   const dateClassController = dateHasError
@@ -81,7 +88,13 @@ const BookingForm = () => {
       </div>
       <div className={timeClassController}>
         <label htmlFor="res-time">Choose time</label>
-        <select id="res-time ">
+        <select
+          id="res-time "
+          onChange={timeChangedHandler}
+          onBlur={timeBlurHandler}
+          value={time}
+        >
+          <option>Select</option>
           <option>17:00</option>
           <option>18:00</option>
           <option>19:00</option>
@@ -89,22 +102,42 @@ const BookingForm = () => {
           <option>21:00</option>
           <option>22:00</option>
         </select>
+        {timeHasError && <p>You must select a valid time!</p>}
       </div>
       <div className={guestClassController}>
         <label htmlFor="guests">Number of guests</label>
-        <input type="number" placeholder="1" min="1" max="10" id="guests" />
+        <input
+          type="number"
+          placeholder="1"
+          min="1"
+          max="10"
+          id="guests"
+          onChange={guestChangedHandler}
+          onBlur={guestBlurHandler}
+          value={guest}
+        />
+        {guestHasError && <p>You must enter a valid number of guest!</p>}
       </div>
       <div className={occasionClassController}>
         <label htmlFor="occasion">Occasion</label>
-        <select id="occasion">
+        <select
+          id="occasion"
+          onChange={occasionChangedHandler}
+          onBlur={occasionBlurHandler}
+          value={occasion}
+        >
           <option>Select</option>
           <option>Birthday</option>
           <option>Anniversary</option>
         </select>
+        {occasionHasError && <p>You must enter a valid Occasion!</p>}
       </div>
       <button type="submit" onClick={reservationHandler}>
         Make Your reservation
       </button>
+      {!formIsValid && (
+        <p className={classes.invalid}>There are some input invalid.</p>
+      )}
     </form>
   );
 };
