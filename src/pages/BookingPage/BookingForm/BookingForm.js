@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import useInputValidation from "../../../hooks/useInputValidation";
 import classes from "./BookingForm.module.css";
 
 const dateNow = new Date();
-console.log(dateNow.getDate());
 
 const BookingForm = (props) => {
   const {
@@ -66,8 +65,6 @@ const BookingForm = (props) => {
     occasionReset();
   };
 
-  const availableHours = ["17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
-
   const dateClassController = dateHasError
     ? `${classes.input} ${classes.error}`
     : classes.input;
@@ -84,7 +81,40 @@ const BookingForm = (props) => {
     ? `${classes.input} ${classes.error}`
     : classes.input;
 
-  const showAvailableTimes = {};
+  const initHours = [
+    { value: "17:00", disable: false },
+    { value: "18:00", disable: false },
+    { value: "19:00", disable: false },
+    { value: "20:00", disable: false },
+    { value: "21:00", disable: false },
+    { value: "22:00", disable: false },
+  ];
+
+  const [availaHours, setAvailaHours] = useState(initHours);
+  const prevBookings = props.prevBookings;
+
+  const showAvailableTime = (e) => {
+    dateChangedHandler(e);
+
+    let prevBookingFilterDate = [];
+    prevBookingFilterDate = prevBookings.filter(
+      (booking) => booking.date === e.target.value
+    );
+    if (prevBookingFilterDate.length !== 0) {
+      console.log("in if");
+      for (let i = 0; i < availaHours.length; i++) {
+        for (let j = 0; j < prevBookingFilterDate.length; j++) {
+          if (availaHours[i].value === prevBookingFilterDate[j].time) {
+            const newAvailaHours = availaHours;
+            newAvailaHours[i].disable = true;
+            setAvailaHours(newAvailaHours);
+          }
+        }
+      }
+    } else {
+      setAvailaHours(initHours);
+    }
+  };
 
   return (
     <form className={classes.form}>
@@ -92,9 +122,9 @@ const BookingForm = (props) => {
         <label htmlFor="res-date">Choose date</label>
         <input
           type="date"
-          value={date}
           id="res-date"
-          onChange={dateChangedHandler}
+          value={date}
+          onChange={showAvailableTime}
           onBlur={dateBlurHandler}
         />
         {dateHasError && (
@@ -108,12 +138,16 @@ const BookingForm = (props) => {
           onChange={timeChangedHandler}
           onBlur={timeBlurHandler}
           value={time}
-          disabled={!dateIsValid}
+          // disabled={!dateIsValid}
         >
           <option key="default Time">Select</option>
           {dateIsValid &&
-            availableHours.map((hour, index) => {
-              return <option key={`time${index}`}>{hour}</option>;
+            availaHours.map((hour, index) => {
+              return (
+                <option disabled={hour.disable} key={`time${index}`}>
+                  {hour.value}
+                </option>
+              );
             })}
         </select>
         {timeHasError && <p>You must select a valid time!</p>}

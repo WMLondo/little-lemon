@@ -2,9 +2,9 @@ import React, { useReducer } from "react";
 import BookingForm from "./BookingForm/BookingForm";
 import BookingSlot from "./BookingSlot/BookingSlot";
 
-const initializeTimes = [];
+const initializeBooking = [];
 
-const availableTimeReducer = (state, action) => {
+const bookingReducer = (state, action) => {
   if (action.type === "ADDING") {
     const { date, time, guest, occasion } = action.payload;
     const newObject = {
@@ -16,13 +16,13 @@ const availableTimeReducer = (state, action) => {
     return [...state, newObject];
   }
 
-  return initializeTimes;
+  return initializeBooking;
 };
 
 const BookingPage = () => {
   const [bookingState, dispatch] = useReducer(
-    availableTimeReducer,
-    initializeTimes
+    bookingReducer,
+    initializeBooking
   );
 
   const addReservationHandler = (data) => {
@@ -33,7 +33,7 @@ const BookingPage = () => {
     <div>
       <BookingForm
         submitForm={addReservationHandler}
-        reservationTimes={bookingState}
+        prevBookings={bookingState}
       />
       <BookingSlot items={bookingState} />
     </div>
