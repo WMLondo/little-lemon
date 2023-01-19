@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import useInputValidation from "../../../hooks/useInputValidation";
+import useHttp from "../../../hooks/use-http";
 import classes from "./BookingForm.module.css";
+import Loading from "../../../Ui/Loading";
 
 const dateNow = new Date();
 
 const BookingForm = (props) => {
+  const { isLoading, error, sendRequest } = useHttp();
+
   const {
     value: date,
     valueIsValid: dateIsValid,
@@ -52,13 +56,37 @@ const BookingForm = (props) => {
   const formIsValid =
     dateIsValid && timeIsValid && guestIsValid && occasionIsValid;
 
-  const reservationHandler = (e) => {
+  const addingReservationHandler = (reservationValue, reservationKey) => {
+    const generateKey = reservationKey;
+    props.submitForm({
+      key: generateKey,
+      date: reservationValue.date,
+      time: reservationValue.time,
+      guest: reservationValue.guest,
+      occasion: reservationValue.occasion,
+    });
+  };
+
+  const reservationHandler = async (e) => {
     e.preventDefault();
     if (!formIsValid) {
       return;
     }
-    console.log("Data sended...");
-    props.submitForm({ date, time, guest, occasion });
+    const reservationValues = {
+      date: date,
+      time: time,
+      guest: guest,
+      occasion: occasion,
+    };
+    sendRequest(
+      {
+        url: "https://react-http-prueba-default-rtdb.firebaseio.com/reservation.json",
+        method: "POST",
+        header: { "Content-type": "application/json" },
+        body: reservationValues,
+      },
+      addingReservationHandler.bind(null, reservationValues)
+    );
     dateReset();
     timeReset();
     guestReset();
@@ -101,7 +129,6 @@ const BookingForm = (props) => {
       (booking) => booking.date === e.target.value
     );
     if (prevBookingFilterDate.length !== 0) {
-      console.log("in if");
       for (let i = 0; i < availaHours.length; i++) {
         for (let j = 0; j < prevBookingFilterDate.length; j++) {
           if (availaHours[i].value === prevBookingFilterDate[j].time) {
@@ -115,6 +142,19 @@ const BookingForm = (props) => {
       setAvailaHours(initHours);
     }
   };
+
+  let content = (
+    <button type="submit" onClick={reservationHandler} disabled={!formIsValid}>
+      Make Your reservation
+    </button>
+  );
+
+  if (isLoading) {
+    content = <Loading />;
+  }
+  if (error.isValid) {
+    content = <p>{error.msg}</p>;
+  }
 
   return (
     <form className={classes.form}>
@@ -138,7 +178,7 @@ const BookingForm = (props) => {
           onChange={timeChangedHandler}
           onBlur={timeBlurHandler}
           value={time}
-          // disabled={!dateIsValid}
+          disabled={!dateIsValid}
         >
           <option key="default Time">Select</option>
           {dateIsValid &&
@@ -180,13 +220,7 @@ const BookingForm = (props) => {
         </select>
         {occasionHasError && <p>You must enter a valid Occasion!</p>}
       </div>
-      <button
-        type="submit"
-        onClick={reservationHandler}
-        disabled={!formIsValid}
-      >
-        Make Your reservation
-      </button>
+      {content}
     </form>
   );
 };

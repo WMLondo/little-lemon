@@ -4,7 +4,7 @@ import classes from "./BookItem.module.css";
 const BookItem = (props) => {
   const { date, time, guest, occasion } = props.data;
   return (
-    <div className={classes.container}>
+    <div className={classes.container} onClick={props.deleteClick}>
       <div className={classes["date-container"]}>
         <span className={classes["date"]}>{time}</span>
         <span className={classes["date"]}>{date}</span>
